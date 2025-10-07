@@ -23,8 +23,12 @@ export const App: React.FC = () => {
     }
 
     const newTodo = createTodo(title, userId, todos);
+    const matchedUser = users.find(user => user.id === userId);
+    const user = users.find( u => u.id === userId);
 
-    setTodos([...todos, newTodo]);
+    const todoWithUser = { ...newTodo, user: matchedUser};
+
+    setTodos([...todos, todoWithUser]);
     setTitle('');
     setUserId(0);
   };
@@ -39,7 +43,7 @@ export const App: React.FC = () => {
             type="text"
             data-cy="titleInput"
             value={title}
-            onChange={e => setTitle(e.target.value)}
+            onChange={(changeEvent) => setTitle(changeEvent.target.value)}
             placeholder="Enter a task"
           />
           <span className="error">Please enter a title</span>
@@ -49,7 +53,7 @@ export const App: React.FC = () => {
           <select
             data-cy="userSelect"
             value={userId}
-            onChange={e => setUserId(Number(e.target.value))}
+            onChange={changeEvent => setUserId(Number(changeEvent.target.value))}
           >
             <option value={0} disabled>
               Choose a user
