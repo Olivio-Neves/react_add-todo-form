@@ -1,36 +1,54 @@
 import './App.scss';
-
-// import usersFromServer from './api/users';
-// import todosFromServer from './api/todos';
 import React, { useState } from 'react';
 import { TodoList } from './components/TodoList';
 import { Todo } from './components/types';
 import { users } from './api/users';
 import { createTodo } from './components/createList';
+import todosData from './api/todosData';
 
 export const App: React.FC = () => {
-  const [todos, setTodos] = useState<Todo[]>([]);
+  const enrichedTodos = todosData
+    .map(todoItem => ({
+      ...todoItem,
+      user: users.find(userItem => userItem.id === todoItem.userId)
+    }))
+    .filter(todoItem => todoItem.user !== undefined) as Todo[];
+
+  const [todos, setTodos] = useState<Todo[]>(enrichedTodos);
   const [title, setTitle] = useState('');
   const [userId, setUserId] = useState<number>(0);
+  const [titleError, setTitleError] = useState('');
+  const [userError, setUserError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (submitEvent: React.FormEvent) => {
+    submitEvent.preventDefault();
 
-    if (!title.trim() || userId === 0) {
-      alert('Please fill in all fields');
+    let hasError = false;
 
-      return;
+    if (!title.trim()) {
+      setTitleError('Please enter a title');
+      hasError = true;
     }
 
-    const newTodo = createTodo(title, userId, todos);
-    const matchedUser = users.find(user => user.id === userId);
-    const user = users.find( u => u.id === userId);
+    if (userId === 0) {
+      setUserError('Please choose a user');
+      hasError = true;
+    }
 
-    const todoWithUser = { ...newTodo, user: matchedUser};
+    if (hasError) return;
+
+    const matchedUser = users.find(userItem => userItem.id === userId);
+    if (!matchedUser) return;
+
+    const newTodo = createTodo(title, userId, todos);
+    const todoWithUser = { ...newTodo, user: matchedUser };
 
     setTodos([...todos, todoWithUser]);
+
     setTitle('');
     setUserId(0);
+    setTitleError('');
+    setUserError('');
   };
 
   return (
@@ -39,33 +57,40 @@ export const App: React.FC = () => {
 
       <form onSubmit={handleSubmit}>
         <div className="field">
+          <label htmlFor="titleInput">Task Title</label>
           <input
             type="text"
-            data-cy="titleInput"
+            id="titleInput"
             value={title}
-            onChange={(changeEvent) => setTitle(changeEvent.target.value)}
+            onChange={(changeEvent) => {
+              setTitle(changeEvent.target.value);
+              setTitleError('');
+            }}
             placeholder="Enter a task"
           />
-          <span className="error">Please enter a title</span>
+          {titleError && <span className="error">{titleError}</span>}
         </div>
 
         <div className="field">
+          <label htmlFor="userSelect">Assign to User</label>
           <select
-            data-cy="userSelect"
+            id="userSelect"
             value={userId}
-            onChange={changeEvent => setUserId(Number(changeEvent.target.value))}
+            onChange={(changeEvent) => {
+              setUserId(Number(changeEvent.target.value));
+              setUserError('');
+            }}
           >
             <option value={0} disabled>
               Choose a user
             </option>
-            {users.map(user => (
-              <option key={user.id} value={user.id}>
-                {user.name}
+            {users.map(userItem => (
+              <option key={userItem.id} value={userItem.id}>
+                {userItem.name}
               </option>
             ))}
           </select>
-
-          <span className="error">Please choose a user</span>
+          {userError && <span className="error">{userError}</span>}
         </div>
 
         <button type="submit" data-cy="submitButton">
@@ -73,7 +98,7 @@ export const App: React.FC = () => {
         </button>
       </form>
 
-      <TodoList todos={todos} users={users} />
+      <TodoList todos={todos} />
     </div>
   );
 };
