@@ -4,11 +4,9 @@ import './App.scss';
 // import todosFromServer from './api/todos';
 import React, { useState } from 'react';
 import { TodoList } from './components/TodoList';
-import { User } from './components/types';
 import { Todo } from './components/types';
 import { users } from './api/users';
 import { createTodo } from './components/createList';
-
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -20,10 +18,12 @@ export const App: React.FC = () => {
 
     if (!title.trim() || userId === 0) {
       alert('Please fill in all fields');
+
       return;
     }
 
     const newTodo = createTodo(title, userId, todos);
+
     setTodos([...todos, newTodo]);
     setTitle('');
     setUserId(0);
@@ -39,7 +39,7 @@ export const App: React.FC = () => {
             type="text"
             data-cy="titleInput"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={e => setTitle(e.target.value)}
             placeholder="Enter a task"
           />
           <span className="error">Please enter a title</span>
@@ -49,12 +49,12 @@ export const App: React.FC = () => {
           <select
             data-cy="userSelect"
             value={userId}
-            onChange={(e) => setUserId(Number(e.target.value))}
+            onChange={e => setUserId(Number(e.target.value))}
           >
             <option value={0} disabled>
               Choose a user
             </option>
-            {users.map((user) => (
+            {users.map(user => (
               <option key={user.id} value={user.id}>
                 {user.name}
               </option>
